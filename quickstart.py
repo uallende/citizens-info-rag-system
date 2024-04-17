@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 openai_api_key = os.getenv("WCS_API_KEY")
-wcs_api_key = os.getenv("WCS_API_KEY")
+wcs_url = os.getenv("WCS_URL")
 
 client = weaviate.connect_to_wcs(
-    cluster_url=wcs_api_key,
-    auth_credentials=weaviate.auth.AuthApiKey(wcs_api_key),
+    cluster_url = wcs_url,
+    auth_credentials=weaviate.auth.AuthApiKey(os.getenv("WCS_API_KEY")),
     headers={
-        "X-OpenAI-Api-Key": openai_api_key  # Replace with your inference API key
+        "X-OpenAI-Api-Key": os.environ["OPENAI_APIKEY"]  # Replace with your inference API key
     }
 )
 
