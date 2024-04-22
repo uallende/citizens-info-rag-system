@@ -1,6 +1,7 @@
 import streamlit as st
-import weaviate
-from app.rag import convert_text_to_tokens
+import weaviate, os, torch
+from dotenv import load_dotenv
+from app.rag import generate_text_embeddings, load_embeddings_model
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig
 
 def weaviate_client():
@@ -12,17 +13,28 @@ def weaviate_client():
     return client
 
 def main():
-    st.title('Citizens information - Ask a question')
+    st.title('Citizens Information - Ask a question')
 
-    tokenizer = AutoTokenizer.from_pretrained('Salesforce/SFR-Embedding-Mistral')
+    cwd = os.getcwd()
+    parent_dir = os.path.dirname(cwd)
+    os.chdir(parent_dir)
+
+    load_dotenv()
+    hf_token = os.getenv("HUGGINGFACE_TOKEN")
+
+    model = load_embeddings_model()
+
     max_length = 4096
-    question = f"What do I do if my neighbour is having a party"
-
+    tokenizer = AutoTokenizer.from_pretrained('Salesforce/SFR-Embedding-Mistral')
     user_input = st.text_input("Enter your question here")
 
 
     if st.button('Submit'):
-        embeddings = convert_text_to_tokens(user_input)
+        embeddings = generate_text_embeddings(text=user_input, 
+                                            model=model, 
+                                            tokenizer=tokenizer, 
+                                            max_length=max_length)
+        
         st.write('Embeddings:', embeddings)
 
 if __name__ == "__main__":

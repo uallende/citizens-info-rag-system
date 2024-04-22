@@ -21,20 +21,31 @@ def last_token_pool(last_hidden_states: Tensor,
         batch_size = last_hidden_states.shape[0]
     return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
-def convert_text_to_tokens(text:str, model, tokenizer, max_length):
+def generate_text_embeddings(text:str, model, tokenizer, max_length):
 
     batch_dict = tokenizer(text, max_length=max_length, padding=True, truncation=True, return_tensors="pt").to('cuda')
+    model.eval()
     output = model(**batch_dict)
-    embeddings = last_token_pool(output.last_hidden_state, batch_dict['attention_mask'])[0].float().cpu().detach().numpy()
+
+    with torch.no_grad():
+        embeddings = last_token_pool(output.last_hidden_state, batch_dict['attention_mask'])[0].float().cpu().detach().numpy()
     return embeddings
 
-# openai_api_key = os.getenv("OPENAI_KEY")
+def load_embeddings_model():
 
-# client = weaviate.connect_to_local(
-#     port=8080,
-#     grpc_port=50051,
-#     additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180)),
-#     headers={
-#         "X-OpenAI-Api-Key": openai_api_key  
-#     }
-# )
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16
+    )
+
+    model = AutoModel.from_pretrained(
+        'Salesforce/SFR-Embedding-Mistral',
+        trust_remote_code=True,
+        device_map='cuda',
+        torch_dtype=torch.bfloat16,
+        quantization_config=bnb_config
+    )
+
+    return model
