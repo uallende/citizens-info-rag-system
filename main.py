@@ -1,41 +1,32 @@
 import streamlit as st
-import weaviate, os, torch
-from dotenv import load_dotenv
-from app.rag import generate_text_embeddings, load_embeddings_model
-from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig
+from app.rag import weaviate_client, retrieve_nearest_content
+from app.rag import generate_final_answer, parse_llm_generated_answer, generate_lightweight_embeddings
 
-def weaviate_client():
-    
-    client = weaviate.connect_to_local(
-        port=8080,
-        grpc_port=50051,
-        additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180)))
-    return client
+@st.cache_resource
+def initialise():
+    client = weaviate_client()
+    collection = client.collections.get("citizens_info_docs")
+    return collection
 
 def main():
+
     st.title('Citizens Information - Ask a question')
-
-    cwd = os.getcwd()
-    parent_dir = os.path.dirname(cwd)
-    os.chdir(parent_dir)
-
-    load_dotenv()
-    hf_token = os.getenv("HUGGINGFACE_TOKEN")
-
-    model = load_embeddings_model()
-
-    max_length = 4096
-    tokenizer = AutoTokenizer.from_pretrained('Salesforce/SFR-Embedding-Mistral')
     user_input = st.text_input("Enter your question here")
-
+    collection = initialise()
 
     if st.button('Submit'):
-        embeddings = generate_text_embeddings(text=user_input, 
-                                            model=model, 
-                                            tokenizer=tokenizer, 
-                                            max_length=max_length)
+        # query_embeddings = generate_text_embeddings(text=user_input)
+        query_embeddings = generate_lightweight_embeddings(text=user_input)
+        response = retrieve_nearest_content(collection, query_embeddings)
         
-        st.write('Embeddings:', embeddings)
+        for o in response.objects:
+            context = o.properties['body']
+            break
+
+        llm_answer = generate_final_answer(context, user_input)
+        parsed_user_answer = parse_llm_generated_answer(llm_answer)
+        st.markdown(f'{parsed_user_answer} \n \n')
+        st.markdown(f'Original article: \n {context}')
 
 if __name__ == "__main__":
-    main()
+        main()
