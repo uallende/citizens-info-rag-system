@@ -80,7 +80,7 @@ def load_embeddings_model():
 
     return model
 
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def load_llm():
 
     model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
@@ -144,7 +144,7 @@ def parse_llm_generated_answer(decoded):
 def lightweight_embedding_model():
     return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def generate_lightweight_embeddings(text:str):
     model = lightweight_embedding_model()
     embeddings = model.encode(text)
