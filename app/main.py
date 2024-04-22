@@ -1,6 +1,6 @@
 import streamlit as st
-from app.rag import weaviate_client, retrieve_nearest_content
-from app.rag import generate_final_answer, parse_llm_generated_answer, generate_lightweight_embeddings
+from rag import weaviate_client, retrieve_nearest_content
+from rag import generate_final_answer, parse_llm_generated_answer, generate_lightweight_embeddings
 
 @st.cache_resource
 def initialise():
@@ -9,7 +9,6 @@ def initialise():
     return collection
 
 def main():
-
     st.title('Citizens Information - Ask a question')
     user_input = st.text_input("Enter your question here")
     collection = initialise()

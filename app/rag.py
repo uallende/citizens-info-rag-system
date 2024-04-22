@@ -9,7 +9,7 @@ from weaviate.classes.query import MetadataQuery
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig, AutoConfig, AutoModelForCausalLM
 from torch import Tensor
 from dotenv import load_dotenv
-from app.constants import *
+from constants import *
 from sentence_transformers import SentenceTransformer
 
 
@@ -31,7 +31,6 @@ def last_token_pool(last_hidden_states: Tensor,
     return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
 def generate_text_embeddings(text:str):
-
     max_length = 4096
     model = load_embeddings_model()
     tokenizer = AutoTokenizer.from_pretrained('Salesforce/SFR-Embedding-Mistral')
@@ -45,7 +44,6 @@ def generate_text_embeddings(text:str):
     return embeddings
 
 def retrieve_nearest_content(collection, query_embeddings):
-        
     response = collection.query.near_vector(
         near_vector=query_embeddings.tolist(),  
         target_vector='default', 
@@ -62,7 +60,6 @@ def clear_gpu_memory(model, tokenizer):
     gc.collect()
 
 def load_embeddings_model():
-
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
@@ -82,33 +79,33 @@ def load_embeddings_model():
 
 @st.cache_resource
 def load_llm():
-
     model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
 
     config = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
     config.max_position_embeddings = 8096
+
     quantization_config = BitsAndBytesConfig(
-    llm_int8_enable_fp32_cpu_offload=True,
-    bnb_4bit_quant_type='nf4',
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.bfloat16,
-    load_in_4bit=True
+        llm_int8_enable_fp32_cpu_offload=True,
+        bnb_4bit_quant_type='nf4',
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        load_in_4bit=True
     )
 
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=True)
+
     model = AutoModelForCausalLM.from_pretrained(
-    model_name_or_path,
-    config=config,
-    trust_remote_code=True,
-    quantization_config=quantization_config,
-    device_map="cuda",
-    offload_folder="./offload"
+        model_name_or_path,
+        config=config,
+        trust_remote_code=True,
+        quantization_config=quantization_config,
+        device_map=DEVICE,
+        offload_folder="./offload"
     )
 
     return model, tokenizer
 
 def generate_final_answer(context, user_input):
-
     model, tokenizer = load_llm()
     prompt = [
         {
