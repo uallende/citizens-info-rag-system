@@ -117,8 +117,8 @@ def generate_final_answer(context, user_input):
         "content": (
             f"Based on the following context {context}, "
             f"can you provide an answer to this {user_input}. "
-            f"If the information is not clear say I don't know but don't make up any information"
-                    ),
+            f"the answer should be only reflect facts that are present in the context."
+            f"If the information is not clear say I don't know but don't make up any information"),
 
          }
             ]   
