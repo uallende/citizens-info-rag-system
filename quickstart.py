@@ -1,13 +1,10 @@
 import weaviate
-import weaviate.classes as wvc
 import os
-import requests
-import json
 from dotenv import load_dotenv
 
 
 load_dotenv()
-openai_api_key = os.getenv("WCS_API_KEY")
+openai_api_key = os.getenv("OPENAI_KEY")
 wcs_url = os.getenv("WCS_URL")
 
 client = weaviate.connect_to_wcs(
