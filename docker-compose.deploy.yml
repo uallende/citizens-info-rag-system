@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  cit-info-rag:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: all  # Allocate all available GPUs

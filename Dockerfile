@@ -1,27 +1,30 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim-buster
+# Nvidia latest ubuntu image
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
-# Set the working directory in the container to /app
-WORKDIR /app
+ENV CUDA_HOME=/usr/local/cuda
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    dbus \
-    libdbus-1-dev \
-    libdbus-glib-1-dev \
-    libdbus-glib-1-2 \
-    python-dev \
+# Install CUDA and cuDNN dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    build-essential \
+    cuda-cudart-12-4 \
+    cuda-nvml-dev-12-4 \
+    cuda-command-line-tools-12-4 \
+    libcudnn8 \
     && rm -rf /var/lib/apt/lists/*
 
-# Add the current directory contents into the container at /app
-ADD . /app
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR /app
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+COPY pyproject.toml poetry.lock ./
 
-# Run app.py when the container launches
-CMD ["streamlit", "run", "main.py"]
+RUN pip install --no-cache-dir poetry \
+    && poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --no-root
+
+COPY . .
+
+EXPOSE 8501
+
+CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "app/main.py"]
