@@ -1,14 +1,10 @@
 import weaviate
-import weaviate.classes as wvc
-import os
-import torch.nn.functional as F
 import torch, gc
 import streamlit as st
 
 from weaviate.classes.query import MetadataQuery
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig, AutoConfig, AutoModelForCausalLM
 from torch import Tensor
-from dotenv import load_dotenv
 from constants import *
 from sentence_transformers import SentenceTransformer
 
