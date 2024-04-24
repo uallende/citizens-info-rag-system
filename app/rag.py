@@ -117,6 +117,8 @@ def load_llm():
 
 def generate_final_answer(context, user_input):
     model, tokenizer = load_llm()
+    print(f'context {context}')
+    print(f'user_input: {user_input}')
     prompt = [
         {
 
