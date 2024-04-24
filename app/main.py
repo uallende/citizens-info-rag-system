@@ -1,12 +1,20 @@
 import streamlit as st
-from rag import weaviate_client, retrieve_nearest_content
+from rag import load_weaviate_client, load_weaviate_local_connection, retrieve_nearest_content
 from rag import generate_final_answer, parse_llm_generated_answer, generate_lightweight_embeddings
 from init_data import initialise_data
 
 @st.cache_resource
 def initialise():
-    client = weaviate_client()
+    host = "weaviate"  # or "localhost" for local development
+    port = "8080"
+    grpc_port = "50051"
+    secure = False
+    client = load_weaviate_client(host=host, 
+                                  port=port,
+                                  grpc_port=grpc_port,
+                                  secure=secure)
     collection = client.collections.get("citizens_info_docs")
+    print(f'collection retreived from weaviate')
     return collection
 
 def main():
