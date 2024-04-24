@@ -1,7 +1,5 @@
-import weaviate
-import torch, gc
+import weaviate, torch, gc, os, joblib
 import streamlit as st
-import os
 
 from weaviate.classes.query import MetadataQuery
 from weaviate.connect import ConnectionParams
@@ -105,39 +103,49 @@ def load_embeddings_model():
     return model
 
 @st.cache_resource
+
 def load_llm():
-    model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
+    cache_file = "/app/cache/llm_cache.joblib"  # adjust the path to a persistent storage volume
 
-    config = AutoConfig.from_pretrained(
-        model_name_or_path,
-        trust_remote_code=True,
-        use_auth_token=hf_token
-    )
-    config.max_position_embeddings = 8096
+    if os.path.exists(cache_file):
+        print("Loading cached model and tokenizer...")
+        model, tokenizer = joblib.load(cache_file)
+    else:
+        print("Downloading and caching model and tokenizer...")
+        model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
 
-    quantization_config = BitsAndBytesConfig(
-        llm_int8_enable_fp32_cpu_offload=True,
-        bnb_4bit_quant_type='nf4',
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        load_in_4bit=True
-    )
+        config = AutoConfig.from_pretrained(
+            model_name_or_path,
+            trust_remote_code=True,
+            token=hf_token
+        )
+        config.max_position_embeddings = 8096
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name_or_path,
-        use_fast=True,
-        use_auth_token=hf_token
-    )
+        quantization_config = BitsAndBytesConfig(
+            llm_int8_enable_fp32_cpu_offload=True,
+            bnb_4bit_quant_type='nf4',
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            load_in_4bit=True
+        )
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name_or_path,
-        config=config,
-        trust_remote_code=True,
-        quantization_config=quantization_config,
-        device_map=DEVICE,
-        offload_folder="./offload",
-        use_auth_token=hf_token
-    )
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name_or_path,
+            use_fast=True,
+            token=hf_token
+        )
+
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name_or_path,
+            config=config,
+            trust_remote_code=True,
+            quantization_config=quantization_config,
+            device_map=DEVICE,
+            offload_folder="./offload",
+            token=hf_token
+        )
+
+        joblib.dump((model, tokenizer), cache_file)
 
     return model, tokenizer
 

@@ -60,27 +60,29 @@ def initialise_data():
     secure = False
 
     client = load_weaviate_client(host, port, grpc_port, secure)
-    # client = load_weaviate_local_connection(port, grpc_port) # USE ONLY TO TEST LOCALLY
     print("Connected to Weaviate!")
-    print("Loading data inside the store database")
-
-    path_to_pdf = 'pdf_docs'
-    documents_text = load_pdf_documents(path_to_pdf)
-
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-    body_vectors = []
-    for d in documents_text:
-        body = d.page_content
-        embeddings = model.encode(body)
-        body_vectors.append(embeddings)
-
-    document_objs = extract_document_data(documents_text)
 
     collection_name = "citizens_info_docs"
-    collection = create_weaviate_collection(client, collection_name)
-    populate_weaviate_collection(collection, document_objs, body_vectors)
+    if not client.collections.exists(collection_name):
+        print("Collection does not exist, creating and populating...")
+        path_to_pdf = 'pdf_docs'
+        documents_text = load_pdf_documents(path_to_pdf)
 
-    print(f'Vector database has been populated with pdf info')
+        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        body_vectors = []
+        for d in documents_text:
+            body = d.page_content
+            embeddings = model.encode(body)
+            body_vectors.append(embeddings)
+
+        document_objs = extract_document_data(documents_text)
+
+        collection = create_weaviate_collection(client, collection_name)
+        populate_weaviate_collection(collection, document_objs, body_vectors)
+
+        print(f'Vector database has been populated with pdf info')
+    else:
+        print(f"Collection '{collection_name}' already exists, skipping data loading...")
 
 if __name__ == "__main__":
     initialise_data()
