@@ -1,20 +1,37 @@
 import weaviate
 import torch, gc
 import streamlit as st
+import os
 
 from weaviate.classes.query import MetadataQuery
+from weaviate.connect import ConnectionParams
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig, AutoConfig, AutoModelForCausalLM
 from torch import Tensor
 from constants import *
 from sentence_transformers import SentenceTransformer
 
 
+# def weaviate_client():
+#     client = weaviate.connect_to_local(
+#         port=8080,
+#         grpc_port=50051,
+#         additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180)))
+#     return client
+
 def weaviate_client():
-    client = weaviate.connect_to_local(
-        port=8080,
-        grpc_port=50051,
-        additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180)))
+    
+    client = weaviate.WeaviateClient(
+        connection_params=ConnectionParams.from_params(
+            http_host="0.0.0.0",  # Use 0.0.0.0 to allow connections from outside the container
+            http_port="8080",     # The port exposed by the Weaviate container
+            http_secure=False,
+            grpc_host="0.0.0.0",
+            grpc_port="50051",
+            grpc_secure=False,
+        ),
+    )
     return client
+
 
 def last_token_pool(last_hidden_states: Tensor,
                  attention_mask: Tensor) -> Tensor:
