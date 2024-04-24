@@ -18,20 +18,29 @@ from sentence_transformers import SentenceTransformer
 #         additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180)))
 #     return client
 
-def weaviate_client():
+# def weaviate_client():
     
-    client = weaviate.WeaviateClient(
-        connection_params=ConnectionParams.from_params(
-            http_host="0.0.0.0",  # Use 0.0.0.0 to allow connections from outside the container
-            http_port="8080",     # The port exposed by the Weaviate container
-            http_secure=False,
-            grpc_host="0.0.0.0",
-            grpc_port="50051",
-            grpc_secure=False,
-        ),
+#     client = weaviate.WeaviateClient(
+#         connection_params=ConnectionParams.from_params(
+#             http_host="weaviate",
+#             http_port="8080",
+#             http_secure=False,
+#             grpc_host="weaviate",
+#             grpc_port="50051",
+#             grpc_secure=False,
+#         ),
+#     )
+#     return client
+
+
+def weaviate_client():
+
+    client = weaviate.connect_to_local(
+    port=8080,
+    grpc_port=50051,
+    additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180)),
     )
     return client
-
 
 def last_token_pool(last_hidden_states: Tensor,
                  attention_mask: Tensor) -> Tensor:

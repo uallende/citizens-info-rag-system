@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcudnn8 \
     && rm -rf /var/lib/apt/lists/*
 
-
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock ./
@@ -25,6 +24,7 @@ RUN pip install --no-cache-dir poetry \
 
 COPY . .
 
-EXPOSE 8501
+RUN python3 app/init_data.py
+ENV INITIALIZED=true
 
 CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "app/main.py"]
