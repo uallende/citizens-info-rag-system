@@ -33,6 +33,7 @@ def extract_document_data(documents_text):
 
 def create_weaviate_collection(client, collection_name):
     client.collections.delete(collection_name)
+    print(f'Collection {collection_name} has been deleted')
     client.collections.create(
         collection_name,
         properties=[
@@ -43,7 +44,7 @@ def create_weaviate_collection(client, collection_name):
     )
     return client.collections.get(collection_name)
 
-def populate_weaviate_collection(client, collection, document_objs, body_vectors):
+def populate_weaviate_collection(collection, document_objs, body_vectors):
     with collection.batch.dynamic() as batch:
         for i, data_row in enumerate(document_objs):
             batch.add_object(
@@ -77,7 +78,7 @@ def initialise_data():
 
     collection_name = "citizens_info_docs"
     collection = create_weaviate_collection(client, collection_name)
-    populate_weaviate_collection(client, collection, document_objs, body_vectors)
+    populate_weaviate_collection(collection, document_objs, body_vectors)
 
     print(f'Vector database has been populated with pdf info')
 

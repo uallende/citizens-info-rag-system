@@ -9,6 +9,10 @@ from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBy
 from torch import Tensor
 from constants import *
 from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+
+load_dotenv()  # Load the .env file
+hf_token = os.getenv("HUGGINGFACE_TOKEN")
 
 
 def load_weaviate_client(host, port, grpc_port, secure=False):
@@ -23,7 +27,6 @@ def load_weaviate_client(host, port, grpc_port, secure=False):
     client = weaviate.WeaviateClient(connection_params)
     client.connect()
     return client
-
 
 '''
 THIS SECTION WORKS LOCALLY BUT NOT WHEN IMAGES ARE LOADED ON A DOCKER CONTAINER
@@ -105,7 +108,11 @@ def load_embeddings_model():
 def load_llm():
     model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
 
-    config = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
+    config = AutoConfig.from_pretrained(
+        model_name_or_path,
+        trust_remote_code=True,
+        use_auth_token=hf_token
+    )
     config.max_position_embeddings = 8096
 
     quantization_config = BitsAndBytesConfig(
@@ -116,7 +123,11 @@ def load_llm():
         load_in_4bit=True
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name_or_path,
+        use_fast=True,
+        use_auth_token=hf_token
+    )
 
     model = AutoModelForCausalLM.from_pretrained(
         model_name_or_path,
@@ -124,7 +135,8 @@ def load_llm():
         trust_remote_code=True,
         quantization_config=quantization_config,
         device_map=DEVICE,
-        offload_folder="./offload"
+        offload_folder="./offload",
+        use_auth_token=hf_token
     )
 
     return model, tokenizer
