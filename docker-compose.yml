@@ -21,6 +21,8 @@ services:
       - .:/app
     depends_on:
       - weaviate
+    ports:
+      - 8501:8501    
     networks:
       - weaviate-network
 

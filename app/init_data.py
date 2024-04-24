@@ -91,8 +91,8 @@ def initialise_data():
     grpc_port = "50051"
     secure = False
 
-    # client = load_weaviate_client(host, port, grpc_port, secure)
-    client = load_weaviate_local_connection(port, grpc_port)
+    client = load_weaviate_client(host, port, grpc_port, secure)
+    # client = load_weaviate_local_connection(port, grpc_port) # USE ONLY TO TEST LOCALLY
     print("Connected to Weaviate!")
 
     path_to_pdf = 'pdf_docs'

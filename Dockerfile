@@ -24,7 +24,6 @@ RUN pip install --no-cache-dir poetry \
 
 COPY . .
 
-RUN python3 app/init_data.py
 ENV INITIALIZED=true
 
 CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "app/main.py"]
