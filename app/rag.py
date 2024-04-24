@@ -1,8 +1,6 @@
-import weaviate, torch, gc, os, joblib
+import torch, gc, os, joblib
 import streamlit as st
 
-from weaviate.classes.query import MetadataQuery
-from weaviate.connect import ConnectionParams
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig, AutoConfig, AutoModelForCausalLM
 from torch import Tensor
 from constants import *
@@ -11,39 +9,6 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Load the .env file
 hf_token = os.getenv("HUGGINGFACE_TOKEN")
-
-
-def load_weaviate_client(host, port, grpc_port, secure=False):
-    connection_params = weaviate.connect.ConnectionParams.from_params(
-        http_host=host,
-        http_port=port,
-        http_secure=secure,
-        grpc_host=host,
-        grpc_port=grpc_port,
-        grpc_secure=secure,
-    )
-    client = weaviate.WeaviateClient(connection_params)
-    client.connect()
-    return client
-
-'''
-THIS SECTION WORKS LOCALLY BUT NOT WHEN IMAGES ARE LOADED ON A DOCKER CONTAINER
-DOCKER DEPLOYMENT REQUIRES A CUSTOM CONNECTION AND NOT A LOCAL ONE
-client = weaviate.connect_to_local(
-port=8080,
-grpc_port=50051,
-additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180))
-)
-'''
-
-def load_weaviate_local_connection(port, grpc_port):
-    client = weaviate.connect_to_local(
-    port=port,
-    grpc_port=grpc_port,
-    additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180))
-    )
-    client.connect()
-    return client
 
 def last_token_pool(last_hidden_states: Tensor,
                  attention_mask: Tensor) -> Tensor:
@@ -67,16 +32,6 @@ def generate_text_embeddings(text:str):
         embeddings = last_token_pool(output.last_hidden_state, batch_dict['attention_mask'])[0].float().cpu().detach().numpy()
     clear_gpu_memory(model, tokenizer)
     return embeddings
-
-def retrieve_nearest_content(collection, query_embeddings):
-    response = collection.query.near_vector(
-        near_vector=query_embeddings.tolist(),  
-        target_vector='default', 
-        return_properties=['body', 'title'],
-        limit=2,
-        return_metadata=MetadataQuery(distance=True)
-    )
-    return response
 
 def clear_gpu_memory(model, tokenizer):
     model.cpu()
@@ -103,49 +58,60 @@ def load_embeddings_model():
     return model
 
 @st.cache_resource
-
 def load_llm():
-    cache_file = "/app/cache/llm_cache.joblib"  # adjust the path to a persistent storage volume
+    cache_file = "/app/cache/llm_cache.joblib"
+    cache_dir = os.path.dirname(cache_file)
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
 
     if os.path.exists(cache_file):
         print("Loading cached model and tokenizer...")
-        model, tokenizer = joblib.load(cache_file)
+        try:
+            model, tokenizer = joblib.load(cache_file)
+        except Exception as e:
+            print(f"Error loading cached model and tokenizer: {e}")
+            return None, None
     else:
         print("Downloading and caching model and tokenizer...")
-        model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
+        try:
+            model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
 
-        config = AutoConfig.from_pretrained(
-            model_name_or_path,
-            trust_remote_code=True,
-            token=hf_token
-        )
-        config.max_position_embeddings = 8096
+            config = AutoConfig.from_pretrained(
+                model_name_or_path,
+                trust_remote_code=True,
+                token=hf_token
+            )
+            config.max_position_embeddings = 8096
 
-        quantization_config = BitsAndBytesConfig(
-            llm_int8_enable_fp32_cpu_offload=True,
-            bnb_4bit_quant_type='nf4',
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype=torch.bfloat16,
-            load_in_4bit=True
-        )
+            quantization_config = BitsAndBytesConfig(
+                llm_int8_enable_fp32_cpu_offload=True,
+                bnb_4bit_quant_type='nf4',
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                load_in_4bit=True
+            )
 
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name_or_path,
-            use_fast=True,
-            token=hf_token
-        )
+            tokenizer = AutoTokenizer.from_pretrained(
+                model_name_or_path,
+                use_fast=True,
+                token=hf_token
+            )
 
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path,
-            config=config,
-            trust_remote_code=True,
-            quantization_config=quantization_config,
-            device_map=DEVICE,
-            offload_folder="./offload",
-            token=hf_token
-        )
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name_or_path,
+                config=config,
+                trust_remote_code=True,
+                quantization_config=quantization_config,
+                device_map=DEVICE,
+                offload_folder="./offload",
+                token=hf_token
+            )
 
-        joblib.dump((model, tokenizer), cache_file)
+            joblib.dump((model, tokenizer), cache_file, timeout=300)  # 5-minute timeout
+            print("Model and tokenizer downloaded and cached successfully!")
+        except Exception as e:
+            print(f"Error downloading and caching model and tokenizer: {e}")
+            return None, None
 
     return model, tokenizer
 

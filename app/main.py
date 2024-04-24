@@ -1,8 +1,9 @@
 # main.py
 import streamlit as st
-from rag import load_weaviate_client, load_weaviate_local_connection, retrieve_nearest_content
+import os
 from rag import generate_final_answer, parse_llm_generated_answer, generate_lightweight_embeddings
-from weaviate_utils import check_data_in_db, initialise
+from weaviate_utils import load_weaviate_client, load_weaviate_local_connection
+from weaviate_utils import check_data_in_db, initialise, retrieve_nearest_content
 from init_data import initialise_data
 from config import HOST, PORT, GRPC_PORT, SECURE
 
@@ -13,10 +14,11 @@ def main():
                                   secure=SECURE)
     
     if not check_data_in_db(client):
+        print("Current working directory:", os.getcwd())
         initialise_data()
 
     collection = initialise(client)
-    
+
     st.title('Citizens Information - Ask a question')
     user_input = st.text_input("Enter your question here")
 

@@ -1,11 +1,10 @@
 import os
-import weaviate
 from dotenv import load_dotenv
 from weaviate.classes.config import Property, DataType
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
-from rag import load_weaviate_client, load_weaviate_local_connection
+from weaviate_utils import load_weaviate_client, load_weaviate_local_connection
 
 def load_pdf_documents(path_to_pdf):
     documents_text = []
@@ -31,17 +30,38 @@ def extract_document_data(documents_text):
         })
     return document_objs
 
+import weaviate
+
 def create_weaviate_collection(client, collection_name):
-    client.collections.delete(collection_name)
-    print(f'Collection {collection_name} has been deleted')
-    client.collections.create(
-        collection_name,
-        properties=[
-            Property(name="page", data_type=DataType.TEXT),
-            Property(name="title", data_type=DataType.TEXT),
-            Property(name="body", data_type=DataType.TEXT),
-        ]
-    )
+    try:
+        # Try to delete the collection if it already exists
+        client.collections.delete(collection_name)
+        print(f'Collection {collection_name} has been deleted')
+    except weaviate.exceptions.WeaviateError as e:
+        if e.status_code == 404:
+            print(f"Collection '{collection_name}' does not exist. Creating a new one.")
+        else:
+            raise
+
+    try:
+        # Create a new collection
+        client.collections.create(
+            {
+                "name": collection_name,
+                "properties": [
+                    {"name": "page", "dataType": ["text"]},
+                    {"name": "title", "dataType": ["text"]},
+                    {"name": "body", "dataType": ["text"]},
+                ]
+            }
+        )
+        print(f"Collection '{collection_name}' has been created successfully.")
+    except weaviate.exceptions.WeaviateError as e:
+        if e.status_code == 422 and "already exists" in e.message:
+            print(f"Collection '{collection_name}' already exists. Skipping creation.")
+        else:
+            raise
+
     return client.collections.get(collection_name)
 
 def populate_weaviate_collection(collection, document_objs, body_vectors):
