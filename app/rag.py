@@ -62,14 +62,27 @@ import pickle
 @st.cache_resource
 def load_llm():
     print("Loading model and tokenizer...")
-    try:
-        model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
+    model_folder = MODEL_SAVE_DIRECTORY
+    tokenizer_folder = TOKENIZER_SAVE_DIRECTORY
+    model_name_or_path = LLM_MODEL_NAME
 
+    model_config_file = os.path.join(model_folder, "config.json")
+    model_generation_config_file = os.path.join(model_folder, "generation_config.json")
+    model_file = os.path.join(model_folder, "model.safetensors")
+    tokenizer_config_file = os.path.join(tokenizer_folder, "tokenizer_config.json")
+
+    if os.path.exists(model_config_file) and os.path.exists(model_generation_config_file) and os.path.exists(model_file):
+        print("Loading model from local directory...")
+        config = AutoConfig.from_pretrained(model_folder)
+        model = AutoModelForCausalLM.from_pretrained(model_folder, config=config)
+    else:
+        print("Loading model from pretrained...")
         config = AutoConfig.from_pretrained(
             model_name_or_path,
             trust_remote_code=True,
             token=hf_token
         )
+
         config.max_position_embeddings = 8096
 
         quantization_config = BitsAndBytesConfig(
@@ -80,27 +93,29 @@ def load_llm():
             load_in_4bit=True
         )
 
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name_or_path,
-            use_fast=True,
-            token=hf_token
-        )
-
         model = AutoModelForCausalLM.from_pretrained(
             model_name_or_path,
             config=config,
             trust_remote_code=True,
             quantization_config=quantization_config,
             device_map=DEVICE,
-            offload_folder="./offload",  # specify an existing folder for offload
             token=hf_token
         )
         model.save_pretrained(MODEL_SAVE_DIRECTORY)
-        print("Model and tokenizer loaded successfully!")
-    except Exception as e:
-        print(f"Error loading model and tokenizer: {e}")
-        return None, None
 
+    if os.path.exists(tokenizer_config_file):
+        print("Loading tokenizer from local directory...")
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_folder, config=AutoConfig.from_pretrained(model_folder))
+    else:
+        print("Loading tokenizer from pretrained...")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name_or_path,
+            use_fast=True,
+            token=hf_token
+        )
+        tokenizer.save_pretrained(tokenizer_folder)
+
+    print("Model and tokenizer loaded successfully!")
     return model, tokenizer
 
 def generate_final_answer(context, user_input):
