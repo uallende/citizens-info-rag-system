@@ -1,10 +1,9 @@
 import os
-from dotenv import load_dotenv
 from weaviate.classes.config import Property, DataType
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
-from config import *
+from constants import CHUNK_SIZE
 import weaviate
 
 
@@ -14,7 +13,7 @@ def load_pdf_documents(path_to_pdf):
         doc_path = f'{path_to_pdf}/{doc}'
         loader = PyPDFLoader(doc_path)
         pages = loader.load_and_split()
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=6000, chunk_overlap=2500//2)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_SIZE//2)
         docs = text_splitter.split_documents(pages)
         documents_text.append(docs)
     return [item for sublist in documents_text for item in sublist]

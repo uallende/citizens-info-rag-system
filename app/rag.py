@@ -1,4 +1,4 @@
-import torch, gc, os, json
+import torch, gc, os
 import streamlit as st
 
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig, AutoConfig, AutoModelForCausalLM
@@ -86,7 +86,7 @@ def load_llm():
             token=hf_token
         )
 
-        config.max_position_embeddings = 8096
+        config.max_position_embeddings = MAX_POS_EMBEDDINGS
 
         quantization_config = BitsAndBytesConfig(
             llm_int8_enable_fp32_cpu_offload=True,
