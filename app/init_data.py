@@ -5,6 +5,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from weaviate_utils import load_weaviate_client, load_weaviate_local_connection
+from config import *
 import weaviate
 
 
@@ -65,13 +66,15 @@ def populate_weaviate_collection(collection, document_objs, body_vectors):
 
 def initialise_data():
     load_dotenv()
-    host = "weaviate"  # or "localhost" for local development
-    port = "8080"
-    grpc_port = "50051"
-    secure = False
+    # host = "weaviate"  # or "localhost" for local development
+    # port = "8080"
+    # grpc_port = "50051"
+    # secure = False
 
-    client = load_weaviate_client(host, port, grpc_port, secure)
-    print("Connected to Weaviate!")
+    # client = load_weaviate_client(host, port, grpc_port, secure)
+    # print("Connected to Weaviate!")
+
+    client = load_weaviate_local_connection(PORT, GRPC_PORT)
 
     collection_name = "citizens_info_docs"
     if not client.collections.exists(collection_name):

@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "python": "/root/miniconda3/envs/m_enmb/bin/python"
+            "python": "/root/.cache/pypoetry/virtualenvs/citizens-info-ImtipK7r-py3.10/bin/python"
         }
     ]
 }

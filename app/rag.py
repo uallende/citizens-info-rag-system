@@ -1,4 +1,4 @@
-import torch, gc, os, joblib
+import torch, gc, os, json
 import streamlit as st
 
 from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig, AutoConfig, AutoModelForCausalLM
@@ -57,68 +57,54 @@ def load_embeddings_model():
 
     return model
 
+import pickle
+
 @st.cache_resource
 def load_llm():
-    cache_file = "/app/cache/llm_cache.joblib"
-    cache_dir = os.path.dirname(cache_file)
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
+    print("Loading model and tokenizer...")
+    try:
+        model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
 
-    if os.path.exists(cache_file):
-        print("Loading cached model and tokenizer...")
-        try:
-            model, tokenizer = joblib.load(cache_file)
-        except Exception as e:
-            print(f"Error loading cached model and tokenizer: {e}")
-            return None, None
-    else:
-        print("Downloading and caching model and tokenizer...")
-        try:
-            model_name_or_path = "mistralai/Mistral-7B-Instruct-v0.2"
+        config = AutoConfig.from_pretrained(
+            model_name_or_path,
+            trust_remote_code=True,
+            token=hf_token
+        )
+        config.max_position_embeddings = 8096
 
-            config = AutoConfig.from_pretrained(
-                model_name_or_path,
-                trust_remote_code=True,
-                token=hf_token
-            )
-            config.max_position_embeddings = 8096
+        quantization_config = BitsAndBytesConfig(
+            llm_int8_enable_fp32_cpu_offload=True,
+            bnb_4bit_quant_type='nf4',
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            load_in_4bit=True
+        )
 
-            quantization_config = BitsAndBytesConfig(
-                llm_int8_enable_fp32_cpu_offload=True,
-                bnb_4bit_quant_type='nf4',
-                bnb_4bit_use_double_quant=True,
-                bnb_4bit_compute_dtype=torch.bfloat16,
-                load_in_4bit=True
-            )
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name_or_path,
+            use_fast=True,
+            token=hf_token
+        )
 
-            tokenizer = AutoTokenizer.from_pretrained(
-                model_name_or_path,
-                use_fast=True,
-                token=hf_token
-            )
-
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name_or_path,
-                config=config,
-                trust_remote_code=True,
-                quantization_config=quantization_config,
-                device_map=DEVICE,
-                offload_folder="./offload",
-                token=hf_token
-            )
-
-            joblib.dump((model, tokenizer), cache_file, timeout=300)  # 5-minute timeout
-            print("Model and tokenizer downloaded and cached successfully!")
-        except Exception as e:
-            print(f"Error downloading and caching model and tokenizer: {e}")
-            return None, None
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name_or_path,
+            config=config,
+            trust_remote_code=True,
+            quantization_config=quantization_config,
+            device_map=DEVICE,
+            offload_folder="./offload",  # specify an existing folder for offload
+            token=hf_token
+        )
+        model.save_pretrained(MODEL_SAVE_DIRECTORY)
+        print("Model and tokenizer loaded successfully!")
+    except Exception as e:
+        print(f"Error loading model and tokenizer: {e}")
+        return None, None
 
     return model, tokenizer
 
 def generate_final_answer(context, user_input):
     model, tokenizer = load_llm()
-    print(f'context {context}')
-    print(f'user_input: {user_input}')
     prompt = [
         {
 
