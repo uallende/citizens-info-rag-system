@@ -8,16 +8,16 @@ from init_data import initialise_data
 from config import HOST, PORT, GRPC_PORT, SECURE
 
 def main():
-    # client = load_weaviate_client(host=HOST, 
-    #                               port=PORT, 
-    #                               grpc_port=GRPC_PORT, 
-    #                               secure=SECURE)
+    client = load_weaviate_client(host=HOST, 
+                                  port=PORT, 
+                                  grpc_port=GRPC_PORT, 
+                                  secure=SECURE)
     
-    client = load_weaviate_local_connection(port=PORT, grpc_port=GRPC_PORT)
+    # client = load_weaviate_local_connection(port=PORT, grpc_port=GRPC_PORT)
 
     if not check_data_in_db(client):
         print("Current working directory:", os.getcwd())
-        initialise_data()
+        initialise_data(client)
 
     collection = initialise(client)
 

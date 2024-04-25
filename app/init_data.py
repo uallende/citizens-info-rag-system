@@ -4,7 +4,6 @@ from weaviate.classes.config import Property, DataType
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
-from weaviate_utils import load_weaviate_client, load_weaviate_local_connection
 from config import *
 import weaviate
 
@@ -15,7 +14,7 @@ def load_pdf_documents(path_to_pdf):
         doc_path = f'{path_to_pdf}/{doc}'
         loader = PyPDFLoader(doc_path)
         pages = loader.load_and_split()
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=2500, chunk_overlap=2500//2)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=6000, chunk_overlap=2500//2)
         docs = text_splitter.split_documents(pages)
         documents_text.append(docs)
     return [item for sublist in documents_text for item in sublist]
@@ -64,18 +63,7 @@ def populate_weaviate_collection(collection, document_objs, body_vectors):
                 vector=body_vectors[i].tolist(),
             )
 
-def initialise_data():
-    load_dotenv()
-    # host = "weaviate"  # or "localhost" for local development
-    # port = "8080"
-    # grpc_port = "50051"
-    # secure = False
-
-    # client = load_weaviate_client(host, port, grpc_port, secure)
-    # print("Connected to Weaviate!")
-
-    client = load_weaviate_local_connection(PORT, GRPC_PORT)
-
+def initialise_data(client):
     collection_name = "citizens_info_docs"
     if not client.collections.exists(collection_name):
         print("Collection does not exist, creating and populating...")

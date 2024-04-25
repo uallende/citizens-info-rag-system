@@ -27,3 +27,4 @@ COPY . .
 ENV INITIALIZED=true
 
 CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "app/main.py"]
+# CMD ["poetry", "run", "streamlit", "run", "app/main.py"]

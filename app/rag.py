@@ -62,10 +62,13 @@ import pickle
 @st.cache_resource
 def load_llm():
     print("Loading model and tokenizer...")
+
+    # Set the model and tokenizer directories
     model_folder = MODEL_SAVE_DIRECTORY
     tokenizer_folder = TOKENIZER_SAVE_DIRECTORY
     model_name_or_path = LLM_MODEL_NAME
 
+    # Load the model and tokenizer from local directory if available
     model_config_file = os.path.join(model_folder, "config.json")
     model_generation_config_file = os.path.join(model_folder, "generation_config.json")
     model_file = os.path.join(model_folder, "model.safetensors")
@@ -103,6 +106,7 @@ def load_llm():
         )
         model.save_pretrained(MODEL_SAVE_DIRECTORY)
 
+    # Load the tokenizer from local directory if available
     if os.path.exists(tokenizer_config_file):
         print("Loading tokenizer from local directory...")
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_folder, config=AutoConfig.from_pretrained(model_folder))
