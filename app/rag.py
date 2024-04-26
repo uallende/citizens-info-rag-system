@@ -5,10 +5,6 @@ from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBy
 from torch import Tensor
 from constants import *
 from sentence_transformers import SentenceTransformer
-from dotenv import load_dotenv
-
-load_dotenv()  # Load the .env file
-hf_token = os.getenv("HUGGINGFACE_TOKEN")
 
 def last_token_pool(last_hidden_states: Tensor,
                  attention_mask: Tensor) -> Tensor:
@@ -20,9 +16,9 @@ def last_token_pool(last_hidden_states: Tensor,
         batch_size = last_hidden_states.shape[0]
     return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
-def generate_text_embeddings(text:str):
+def generate_text_embeddings(text:str, hf_token):
     max_length = 4096
-    model = load_embeddings_model()
+    model = load_embeddings_model(hf_token)
     tokenizer = AutoTokenizer.from_pretrained('Salesforce/SFR-Embedding-Mistral')
     batch_dict = tokenizer(text, max_length=max_length, padding=True, truncation=True, return_tensors="pt").to(DEVICE)
     model.eval()
@@ -39,7 +35,7 @@ def clear_gpu_memory(model, tokenizer):
     torch.cuda.empty_cache()
     gc.collect()
 
-def load_embeddings_model():
+def load_embeddings_model(hf_token):
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
@@ -135,8 +131,8 @@ def load_llm(model_folder, tokenizer_folder, model_name_or_path, hf_token, devic
     print("Model and tokenizer loaded successfully!")
     return model, tokenizer
 
-def generate_final_answer(context, user_input):
-    model, tokenizer = load_llm()
+def generate_final_answer(context, user_input, model_folder, tokenizer_folder, model_name_or_path, hf_token, device):
+    model, tokenizer = load_llm(model_folder, tokenizer_folder, model_name_or_path, hf_token, device)
     prompt = [
         {
 

@@ -6,6 +6,11 @@ from weaviate_utils import load_weaviate_client, load_weaviate_local_connection
 from weaviate_utils import check_data_in_db, initialise, retrieve_nearest_content
 from init_data import initialise_data
 from config import HOST, PORT, GRPC_PORT, SECURE
+from constants import MODEL_SAVE_DIRECTORY, TOKENIZER_SAVE_DIRECTORY, LLM_MODEL_NAME, DEVICE
+from dotenv import load_dotenv
+
+load_dotenv()
+hf_token = os.getenv("HUGGINGFACE_TOKEN")
 
 def main():
     client = load_weaviate_client(host=HOST, 
@@ -33,7 +38,13 @@ def main():
             context = o.properties['body']
             break
 
-        llm_answer = generate_final_answer(context, user_input)
+        llm_answer = generate_final_answer(context, 
+                                           user_input, 
+                                           MODEL_SAVE_DIRECTORY, 
+                                           TOKENIZER_SAVE_DIRECTORY, 
+                                           LLM_MODEL_NAME, 
+                                           hf_token, 
+                                           DEVICE)
         parsed_user_answer = parse_llm_generated_answer(llm_answer)
         st.markdown(f'{parsed_user_answer} \n \n')
         st.markdown(f'Original article: \n {context}')
