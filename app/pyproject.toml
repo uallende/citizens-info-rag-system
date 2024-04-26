@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = "Rag system for Ireland's Citizen Information"
+authors = ["Urko Allende <allende.rev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = "^2.3.0"
+streamlit = "^1.33.0"
+weaviate-client = "^4.5.6"
+transformers = "^4.40.1"
+sentence-transformers = "^2.7.0"
+bitsandbytes = "^0.43.1"
+accelerate = "^0.29.3"
+python-dotenv = "^1.0.1"
+langchain-community = "^0.0.34"
+langchain = "^0.1.16"
+pypdf = "^4.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

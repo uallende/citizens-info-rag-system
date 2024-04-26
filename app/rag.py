@@ -52,12 +52,11 @@ def load_embeddings_model():
         trust_remote_code=True,
         device_map=DEVICE,
         torch_dtype=torch.bfloat16,
-        quantization_config=bnb_config
+        quantization_config=bnb_config,
+        token = hf_token
     )
 
     return model
-
-import pickle
 
 @st.cache_resource
 def load_llm():
@@ -73,6 +72,7 @@ def load_llm():
     model_generation_config_file = os.path.join(model_folder, "generation_config.json")
     model_file = os.path.join(model_folder, "model.safetensors")
     tokenizer_config_file = os.path.join(tokenizer_folder, "tokenizer_config.json")
+    print(hf_token)
 
     if os.path.exists(model_config_file) and os.path.exists(model_generation_config_file) and os.path.exists(model_file):
         print("Loading model from local directory...")
@@ -138,7 +138,7 @@ def generate_final_answer(context, user_input):
             ]   
     
     encoded_prompt = tokenizer.apply_chat_template(prompt, return_tensors="pt").to(DEVICE)
-    generated_ids = model.generate(encoded_prompt, max_new_tokens=1000, do_sample=True, pad_token_id=tokenizer.eos_token_id)  # Use encoded_prompt directly
+    generated_ids = model.generate(encoded_prompt, max_new_tokens=2500, do_sample=True, pad_token_id=tokenizer.eos_token_id)  # Use encoded_prompt directly
     decoded = tokenizer.batch_decode(generated_ids)
     return decoded
 
