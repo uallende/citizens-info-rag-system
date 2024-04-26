@@ -18,7 +18,8 @@ services:
   python-app:
     build: .
     volumes:
-      - .:/app
+      - .app/model:/app/model
+      - .app/tokenizer:/app/tokenizer
     depends_on:
       - weaviate
     ports:

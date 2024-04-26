@@ -14,17 +14,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcudnn8 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Update alternatives to use python3 as the default python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
-COPY pyproject.toml poetry.lock ./
+WORKDIR /app
+COPY ./app .
 
 RUN pip install --no-cache-dir poetry \
     && poetry config virtualenvs.create false \
+    && poetry config virtualenvs.in-project true \
     && poetry install --no-interaction --no-ansi --no-root
 
-COPY . .
-
-ENV INITIALIZED=true
-
-CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "app/main.py"]
-# CMD ["poetry", "run", "streamlit", "run", "app/main.py"]
+CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "main.py"]
