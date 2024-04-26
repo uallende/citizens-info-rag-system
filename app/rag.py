@@ -58,65 +58,78 @@ def load_embeddings_model():
 
     return model
 
+def create_folder_if_not_exists(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+def load_model_from_local(model_folder):
+    print("Loading model from local directory...")
+    config = AutoConfig.from_pretrained(model_folder)
+    model = AutoModelForCausalLM.from_pretrained(model_folder, config=config)
+    return model
+
+def load_model_from_pretrained(model_name_or_path, hf_token, device):
+    print("Loading model from pretrained...")
+    config = AutoConfig.from_pretrained(
+        model_name_or_path,
+        trust_remote_code=True,
+        token=hf_token
+    )
+
+    config.max_position_embeddings = MAX_POS_EMBEDDINGS
+
+    quantization_config = BitsAndBytesConfig(
+        llm_int8_enable_fp32_cpu_offload=True,
+        bnb_4bit_quant_type='nf4',
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        load_in_4bit=True
+    )
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name_or_path,
+        config=config,
+        trust_remote_code=True,
+        quantization_config=quantization_config,
+        device_map=device,
+        token=hf_token
+    )
+    return model
+
+def load_tokenizer_from_local(tokenizer_folder, model_folder):
+    print("Loading tokenizer from local directory...")
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_folder, config=AutoConfig.from_pretrained(model_folder))
+    return tokenizer
+
+def load_tokenizer_from_pretrained(model_name_or_path, hf_token):
+    print("Loading tokenizer from pretrained...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name_or_path,
+        use_fast=True,
+        token=hf_token
+    )
+    return tokenizer
+
 @st.cache_resource
-def load_llm():
-    print("Loading model and tokenizer...")
+def load_llm(model_folder, tokenizer_folder, model_name_or_path, hf_token, device):
+    create_folder_if_not_exists(model_folder)
+    create_folder_if_not_exists(tokenizer_folder)
 
-    # Set the model and tokenizer directories
-    model_folder = MODEL_SAVE_DIRECTORY
-    tokenizer_folder = TOKENIZER_SAVE_DIRECTORY
-    model_name_or_path = LLM_MODEL_NAME
-
-    # Load the model and tokenizer from local directory if available
     model_config_file = os.path.join(model_folder, "config.json")
     model_generation_config_file = os.path.join(model_folder, "generation_config.json")
     model_file = os.path.join(model_folder, "model.safetensors")
     tokenizer_config_file = os.path.join(tokenizer_folder, "tokenizer_config.json")
-    print(hf_token)
 
     if os.path.exists(model_config_file) and os.path.exists(model_generation_config_file) and os.path.exists(model_file):
-        print("Loading model from local directory...")
-        config = AutoConfig.from_pretrained(model_folder)
-        model = AutoModelForCausalLM.from_pretrained(model_folder, config=config)
+        model = load_model_from_local(model_folder)
     else:
-        print("Loading model from pretrained...")
-        config = AutoConfig.from_pretrained(
-            model_name_or_path,
-            trust_remote_code=True,
-            token=hf_token
-        )
+        model = load_model_from_pretrained(model_name_or_path, hf_token, device)
+        model.save_pretrained(model_folder)
 
-        config.max_position_embeddings = MAX_POS_EMBEDDINGS
-
-        quantization_config = BitsAndBytesConfig(
-            llm_int8_enable_fp32_cpu_offload=True,
-            bnb_4bit_quant_type='nf4',
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype=torch.bfloat16,
-            load_in_4bit=True
-        )
-
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path,
-            config=config,
-            trust_remote_code=True,
-            quantization_config=quantization_config,
-            device_map=DEVICE,
-            token=hf_token
-        )
-        model.save_pretrained(MODEL_SAVE_DIRECTORY)
-
-    # Load the tokenizer from local directory if available
     if os.path.exists(tokenizer_config_file):
-        print("Loading tokenizer from local directory...")
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_folder, config=AutoConfig.from_pretrained(model_folder))
+        tokenizer = load_tokenizer_from_local(tokenizer_folder, model_folder)
     else:
-        print("Loading tokenizer from pretrained...")
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name_or_path,
-            use_fast=True,
-            token=hf_token
-        )
+        tokenizer = load_tokenizer_from_pretrained(model_name_or_path, hf_token)
         tokenizer.save_pretrained(tokenizer_folder)
 
     print("Model and tokenizer loaded successfully!")
