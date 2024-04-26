@@ -106,7 +106,7 @@ def load_tokenizer_from_pretrained(model_name_or_path, hf_token):
     )
     return tokenizer
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def load_llm(model_folder, tokenizer_folder, model_name_or_path, hf_token, device):
     create_folder_if_not_exists(model_folder)
     create_folder_if_not_exists(tokenizer_folder)
@@ -167,7 +167,7 @@ def parse_llm_generated_answer(decoded):
 def lightweight_embedding_model():
     return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def generate_lightweight_embeddings(text:str):
     model = lightweight_embedding_model()
     embeddings = model.encode(text)

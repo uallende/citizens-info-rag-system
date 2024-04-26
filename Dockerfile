@@ -25,4 +25,4 @@ RUN pip install --no-cache-dir poetry \
     && poetry config virtualenvs.in-project true \
     && poetry install --no-interaction --no-ansi --no-root
 
-CMD ["poetry", "run", "streamlit", "run", "--server.address", "0.0.0.0", "main.py"]
+CMD ["poetry", "run", "streamlit", "run", "--server.port", "8501", "--server.address", "0.0.0.0", "main.py"]

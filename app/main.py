@@ -18,7 +18,7 @@ def main():
                                   grpc_port=GRPC_PORT, 
                                   secure=SECURE)
     
-    # client = load_weaviate_local_connection(port=PORT, grpc_port=GRPC_PORT)
+    # client = load_weaviate_local_connection(port=PORT, grpc_port=GRPC_PORT) # ONLY FOR LOCAL TESTING
 
     if not check_data_in_db(client):
         print("Current working directory:", os.getcwd())
@@ -31,23 +31,27 @@ def main():
 
     if st.button('Submit'):
         # query_embeddings = generate_text_embeddings(text=user_input)
-        query_embeddings = generate_lightweight_embeddings(text=user_input)
-        response = retrieve_nearest_content(collection, query_embeddings)
-        
-        for o in response.objects:
-            context = o.properties['body']
-            break
+        with st.spinner("Converting query to text..."):
+            query_embeddings = generate_lightweight_embeddings(text=user_input)
+            response = retrieve_nearest_content(collection, query_embeddings)
+            
+            for o in response.objects:
+                context = o.properties['body']
+                break
 
-        llm_answer = generate_final_answer(context, 
-                                           user_input, 
-                                           MODEL_SAVE_DIRECTORY, 
-                                           TOKENIZER_SAVE_DIRECTORY, 
-                                           LLM_MODEL_NAME, 
-                                           hf_token, 
-                                           DEVICE)
-        parsed_user_answer = parse_llm_generated_answer(llm_answer)
-        st.markdown(f'{parsed_user_answer} \n \n')
-        st.markdown(f'Original article: \n {context}')
+        with st.spinner("Generating a response..."):
+            llm_answer = generate_final_answer(context, 
+                                            user_input, 
+                                            MODEL_SAVE_DIRECTORY, 
+                                            TOKENIZER_SAVE_DIRECTORY, 
+                                            LLM_MODEL_NAME, 
+                                            hf_token, 
+                                            DEVICE)
+            parsed_user_answer = parse_llm_generated_answer(llm_answer)
+        st.subheader(f'Answer \n')
+        st.markdown(f'{parsed_user_answer} \n ')
+        st.subheader(f'Original context \n')
+        st.markdown(f'{context}')
 
 if __name__ == "__main__":
     main()
