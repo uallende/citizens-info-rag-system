@@ -10,4 +10,8 @@ https://youtu.be/xTzUn3G9YA0
 
  - Find best embedding model for RAG:  https://www.linkedin.com/posts/pau-labarta-bajo-4432074b_machinelearning-llms-mlops-activity-7189171400186757121-k4SV?utm_source=share&utm_medium=member_desktop
 
+- deployment strategy: https://medium.com/@zhikaichen1999/deploying-a-hugging-face-language-model-on-amazon-sagemaker-8e28020a7ced
 
+- similar architecture: https://aws.amazon.com/blogs/machine-learning/build-a-powerful-question-answering-bot-with-amazon-sagemaker-amazon-opensearch-service-streamlit-and-langchain/
+
+- Approach: Create statements and q&a pairs are a good option

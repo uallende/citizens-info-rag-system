@@ -1,4 +1,3 @@
-# main.py
 import streamlit as st
 import os
 from rag import generate_final_answer, parse_llm_generated_answer, generate_lightweight_embeddings
@@ -26,11 +25,12 @@ def main():
 
     collection = initialise(client)
 
-    st.title('Citizens Information - Ask a question')
+    st.title("Citizens Information - Ask a question", anchor="title")
+    st.write("")  # Add some whitespace
+
     user_input = st.text_input("Enter your question here")
 
-    if st.button('Submit'):
-        # query_embeddings = generate_text_embeddings(text=user_input)
+    if st.button("Submit"):
         with st.spinner("Converting query to text..."):
             query_embeddings = generate_lightweight_embeddings(text=user_input)
             response = retrieve_nearest_content(collection, query_embeddings)
@@ -48,10 +48,11 @@ def main():
                                             hf_token, 
                                             DEVICE)
             parsed_user_answer = parse_llm_generated_answer(llm_answer)
-        st.subheader(f'Answer \n')
-        st.markdown(f'{parsed_user_answer} \n ')
-        st.subheader(f'Original context \n')
-        st.markdown(f'{context}')
+        
+        st.subheader("Answer")
+        st.markdown(f"{parsed_user_answer} \n ")
+        st.subheader("Original context")
+        st.markdown(f"{context}")
 
 if __name__ == "__main__":
     main()
