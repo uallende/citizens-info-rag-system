@@ -14,4 +14,9 @@ https://youtu.be/xTzUn3G9YA0
 
 - similar architecture: https://aws.amazon.com/blogs/machine-learning/build-a-powerful-question-answering-bot-with-amazon-sagemaker-amazon-opensearch-service-streamlit-and-langchain/
 
-- Approach: Create statements and q&a pairs are a good option
+- Approach: Create statements and q&a pairs are a good option. Metadata can save a summary of the chunk and questions is attempting to answer.
+
+- https://platform.openai.com/docs/guides/prompt-engineering/strategy-split-complex-tasks-into-simpler-subtasks
+
+- https://www.youtube.com/watch?v=g1TzbKDNr7M&ab_channel=Diffbot - Knowledge Graphs
+
