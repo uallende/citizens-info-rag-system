@@ -20,3 +20,4 @@ https://youtu.be/xTzUn3G9YA0
 
 - https://www.youtube.com/watch?v=g1TzbKDNr7M&ab_channel=Diffbot - Knowledge Graphs
 
+- RAG From Scratch: Part 13 (RAPTOR) https://www.youtube.com/watch?v=z_6EeA2LDSw&ab_channel=LangChain 
