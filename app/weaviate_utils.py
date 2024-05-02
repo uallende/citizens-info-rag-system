@@ -2,6 +2,10 @@ import weaviate
 import streamlit as st
 from weaviate.classes.query import MetadataQuery
 from constants import WEAVIATE_COLLECTION_NAME
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 def initialise(client):
     collection = client.collections.get(WEAVIATE_COLLECTION_NAME)
@@ -44,9 +48,12 @@ def load_weaviate_local_connection(port, grpc_port):
     additional_config=weaviate.config.AdditionalConfig(timeout=(60, 180))
     )
     client.connect()
+    logger.info(f"Client connected to weaviate")
     return client
 
 def retrieve_nearest_content(collection, query_embeddings):
+    logger.info(f"Collection: {collection}")
+    logger.info(f"query_embeddings: {query_embeddings}")
     response = collection.query.near_vector(
         near_vector=query_embeddings.tolist(),  
         target_vector='default', 

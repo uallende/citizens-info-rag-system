@@ -5,6 +5,10 @@ from transformers import BitsAndBytesConfig, AutoModel, AutoTokenizer, BitsAndBy
 from torch import Tensor
 from constants import *
 from sentence_transformers import SentenceTransformer
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 def last_token_pool(last_hidden_states: Tensor,
                  attention_mask: Tensor) -> Tensor:
@@ -135,19 +139,23 @@ def generate_final_answer(context, user_input, model_folder, tokenizer_folder, m
     model, tokenizer = load_llm(model_folder, tokenizer_folder, model_name_or_path, hf_token, device)
     prompt = [
         {
-
-        "role": "user", 
-        "content": (
-            f"Based on the following context {context}, "
-            f"can you provide an answer to this {user_input}. "
-            f"the answer should be only reflect facts that are present in the context."
-            f"If the information is not clear say I don't know but don't make up any information"),
-
-         }
-            ]   
+            "role": "user", 
+            "content": (
+                f"Based on the following context {context}, "
+                f"can you provide an answer to this {user_input}. "
+                f"the answer should be only reflect facts that are present in the context."
+                f"If the information is not clear say I don't know but don't make up any information"
+            ),
+        }
+    ]
+    
+    logger.info(f"Full prompt: {prompt}")
     
     encoded_prompt = tokenizer.apply_chat_template(prompt, return_tensors="pt").to(DEVICE)
-    generated_ids = model.generate(encoded_prompt, max_new_tokens=2500, do_sample=True, pad_token_id=tokenizer.eos_token_id)  # Use encoded_prompt directly
+    logger.info(f"Tokenizer output: {encoded_prompt}")
+    logger.info(f"Number of tokens: {encoded_prompt['input_ids'].shape[1]}")
+    
+    generated_ids = model.generate(encoded_prompt, max_new_tokens=2500, do_sample=True, pad_token_id=tokenizer.eos_token_id)
     decoded = tokenizer.batch_decode(generated_ids)
     return decoded
 

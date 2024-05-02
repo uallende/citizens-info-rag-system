@@ -8,6 +8,17 @@ from config import HOST, PORT, GRPC_PORT, SECURE
 from constants import MODEL_SAVE_DIRECTORY, TOKENIZER_SAVE_DIRECTORY, LLM_MODEL_NAME, DEVICE
 from dotenv import load_dotenv
 
+import logging
+import streamlit as st
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
+
 load_dotenv()
 hf_token = os.getenv("HUGGINGFACE_TOKEN")
 
@@ -31,7 +42,7 @@ def main():
     user_input = st.text_input("Enter your question here")
 
     if st.button("Submit"):
-        with st.spinner("Converting query to text..."):
+        with st.spinner("Converting query to embeddings..."):
             query_embeddings = generate_lightweight_embeddings(text=user_input)
             response = retrieve_nearest_content(collection, query_embeddings)
             
