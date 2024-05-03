@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "app"
+name = "cit-rag"
 version = "0.1.0"
-description = "Rag system for Ireland's Citizen Information"
-authors = ["Urko Allende <allende.rev@gmail.com>"]
+description = ""
+authors = ["Urko Allende"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -18,11 +18,6 @@ python-dotenv = "^1.0.1"
 langchain-community = "^0.0.34"
 langchain = "^0.1.16"
 pypdf = "^4.2.0"
-requests = "^2.31.0"
-beautifulsoup4 = "^4.12.3"
-pdfkit = "^1.0.0"
-selenium = "^4.20.0"
-
 
 [build-system]
 requires = ["poetry-core"]
