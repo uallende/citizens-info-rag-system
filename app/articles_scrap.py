@@ -57,7 +57,7 @@ all_links = scrape_all_links(root, soup, headers)
 config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
 
 # Create the output directory if it doesn't exist
-output_dir = '../app/pdf_docs'
+output_dir = './app/pdf_docs'
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
