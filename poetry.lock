@@ -1901,6 +1901,18 @@ test = ["hypothesis (>=6.46.1)", "pytest (>=7.3.2)", "pytest-xdist (>=2.2.0)"]
 xml = ["lxml (>=4.9.2)"]
 
 [[package]]
+name = "pdfkit"
+version = "1.0.0"
+description = "Wkhtmltopdf python wrapper to convert html to pdf using the webkit rendering engine and qt"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pdfkit-1.0.0-py2-none-any.whl", hash = "sha256:cc122e5aed594198ff7aaa566f2950d2163763576ab891c161bb1f6c630f5a8e"},
+    {file = "pdfkit-1.0.0-py3-none-any.whl", hash = "sha256:a7a4ca0d978e44fa8310c4909f087052430a6e8e0b1dd7ceef657f139789f96f"},
+    {file = "pdfkit-1.0.0.tar.gz", hash = "sha256:992f821e1e18fc8a0e701ecae24b51a2d598296a180caee0a24c0af181da02a9"},
+]
+
+[[package]]
 name = "pillow"
 version = "10.3.0"
 description = "Python Imaging Library (Fork)"
@@ -3708,4 +3720,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c656f3fa8f4a85a2b89cc71214f08a224b95f3dd9c73e512a3e886e626df1389"
+content-hash = "01d0fa07ae44dabb42ef6dafdf54c15ad3749f400195f71a1fa2ade12dab055a"
