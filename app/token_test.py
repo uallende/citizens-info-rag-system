@@ -4,4 +4,4 @@ import os
 load_dotenv()  # Load the .env file
 hf_token = os.getenv("HUGGINGFACE_TOKEN")
 
-print(f'Token {hf_token}')
+# print(f'Token {hf_token}')
