@@ -16,8 +16,16 @@ https://youtu.be/xTzUn3G9YA0
 
 - Approach: Create statements and q&a pairs are a good option. Metadata can save a summary of the chunk and questions is attempting to answer.
 
+- do k retrieval > 1 and join the results before feeding to the LLM
+
 - https://platform.openai.com/docs/guides/prompt-engineering/strategy-split-complex-tasks-into-simpler-subtasks
 
 - https://www.youtube.com/watch?v=g1TzbKDNr7M&ab_channel=Diffbot - Knowledge Graphs
 
 - RAG From Scratch: Part 13 (RAPTOR) https://www.youtube.com/watch?v=z_6EeA2LDSw&ab_channel=LangChain 
+
+- build own evaluation for embeddings 
+
+![how to chunk?](image.png) https://www.youtube.com/watch?v=FDEmbYPgG-s&list=WL&index=54&t=3s&ab_channel=AIEngineer 
+
+- giskard for evaluation of RAG systems
