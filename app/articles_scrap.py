@@ -1,6 +1,12 @@
 from bs4 import BeautifulSoup
 import requests, pdfkit, os
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
 def get_main_sections(soup):
     main_section = soup.find('div', {'class': 'page_content'})
     links = main_section.select('a[href^="/en/"]')
