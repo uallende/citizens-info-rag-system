@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from weasyprint import HTML
 
 
 def get_main_sections(soup):
@@ -68,7 +69,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 for link in all_links:
-    url = f'{root}{link}'
+    url = HTML(f'{root}{link}')
     output_file = os.path.join(output_dir, f"{link.replace('/', '_')}.pdf")
-    pdfkit.from_url(url, output_file, configuration=config)
+    url.write_pdf(output_file)
     print(f"PDF saved as {output_file}")
