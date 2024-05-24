@@ -1,10 +1,6 @@
 from bs4 import BeautifulSoup
-import requests, pdfkit, os
+import requests, os
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from weasyprint import HTML
 
 
@@ -61,7 +57,6 @@ headers = {
 page_to_scrape = requests.get(root, headers=headers)
 soup = BeautifulSoup(page_to_scrape.content, 'html.parser')
 all_links = scrape_all_links(root, soup, headers)
-config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
 
 # Create the output directory if it doesn't exist
 output_dir = './app/pdf_docs'
